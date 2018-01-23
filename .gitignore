@@ -1,0 +1,8 @@
+.terraform
+*.tfstate
+*.tfstate.backup
+.envrc
+consul-ui-password.txt
+vault.*.token
+concourse-keys/
+concourse.credentialManager.yml

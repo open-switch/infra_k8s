@@ -1,0 +1,249 @@
+---
+jobs:
+- name: publish-unstable
+  serial_groups: [aptly-publish]
+  public: true
+  build_logs_to_retain: 100
+  plan:
+  - aggregate:
+    - get: ((repo))
+      version: latest
+      trigger: true
+    - get: opx-build
+  - task: git-buildpackage
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: opxhub/build
+          tag: unstable
+      inputs:
+      - name: ((repo))
+      - name: opx-build
+      outputs:
+      - name: pkg
+      params:
+        REPO: ((repo))
+      run:
+        path: bash
+        args:
+        - -euc
+        - |
+          # workaround for hard-coded /mnt directory in opx_build script
+          git clone $REPO /mnt/$REPO
+          pushd /mnt/$REPO
+
+          # bump version with date and git sha
+          v="$(dpkg-parsechangelog -SVersion)"
+          if [[ $v == *"+"* ]]; then s="."; else s="+"; fi
+          v="${v}${s}git$(date +%Y%m%d).$(git rev-parse --short HEAD)"
+          debchange \
+            --newversion "$v" \
+            --distribution unstable \
+            --controlmaint \
+            "$(git log --oneline -1)"
+          dpkg-parsechangelog --count 1
+          popd
+
+          # build packages
+          export PATH=$PATH:$PWD/opx-build/scripts
+          pushd /mnt/
+          opx_build $REPO
+          ls -l *.deb *.build *.dsc *.tar.gz
+          popd
+
+          # copy packages to output
+          cp -t pkg/ /mnt/*.deb /mnt/*.build /mnt/*.dsc /mnt/*.tar.gz
+  - aggregate:
+    - task: publish-debs
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: opxhub/concourse
+        inputs:
+        - name: pkg
+        params:
+          REPO: ((repo))
+          BINTRAY: ((bintray_username)):((bintray_apikey))
+        run:
+          path: bash
+          args:
+          - -euc
+          - |
+            shopt -s nullglob
+            pushd pkg/
+            files=( *.deb )
+            version="$(echo ${files[0]} | perl -ne '/.*_(.*)_.*/ && print $1')"
+            for file in "${files[@]}"; do
+              echo -n "Publishing ${file}... "
+              curl -T "$file" "https://$BINTRAY@api.bintray.com/content/open-switch/opx-apt/$REPO/$version/pool/unstable/$REPO/$file;deb_distribution=unstable;deb_component=main;deb_architecture=amd64;publish=1"
+              echo
+            done
+    - task: aptly-publish
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: opxhub/concourse
+        inputs:
+        - name: pkg
+        params:
+          AWS_ACCESS_KEY_ID: ((aptly_s3_access_key_id))
+          AWS_SECRET_ACCESS_KEY: ((aptly_s3_secret_access_key))
+          APTLY_KEY: ((aptly_gpg_key))
+        run:
+          path: bash
+          args:
+          - -euc
+          - |
+            aws s3 sync s3://aptlydb.deb.openswitch.net/aptlydb/ aptlydb/
+            cat <<EOF >aptly.conf
+            {
+              "rootDir": "$PWD/aptlydb",
+              "S3PublishEndpoints": {
+                "opx": {
+                  "region":"us-west-2",
+                  "bucket":"deb.openswitch.net",
+                  "acl":"public-read"
+                }
+              }
+            }
+            EOF
+            echo "$APTLY_KEY" | gpg --import
+            aptly -config=aptly.conf repo add opx-unstable pkg/
+            aptly -config=aptly.conf publish update unstable s3:opx:
+            aws s3 sync aptlydb/ s3://aptlydb.deb.openswitch.net/aptlydb/
+
+- name: publish-testing
+  serial_groups: [aptly-publish]
+  public: true
+  build_logs_to_retain: 100
+  plan:
+  - aggregate:
+    - get: ((repo))-tag
+      version: latest
+      trigger: true
+    - get: opx-build
+  - task: git-buildpackage
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: opxhub/build
+          tag: testing
+      inputs:
+      - name: ((repo))-tag
+        path: ((repo))
+      - name: opx-build
+      outputs:
+      - name: pkg
+      params:
+        REPO: ((repo))
+      run:
+        path: bash
+        args:
+        - -euc
+        - |
+          # workaround for hard-coded /mnt directory in opx_build script
+          git clone $REPO /mnt/$REPO
+          pushd /mnt/$REPO
+          dpkg-parsechangelog --count 1
+          popd
+
+          # build packages
+          export PATH=$PATH:$PWD/opx-build/scripts
+          pushd /mnt/
+          opx_build $REPO
+          ls -l *.deb *.build *.dsc *.tar.gz
+          popd
+
+          # copy packages to output
+          cp -t pkg/ /mnt/*.deb /mnt/*.build /mnt/*.dsc /mnt/*.tar.gz
+  - aggregate:
+    - task: publish-debs
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: opxhub/concourse
+        inputs:
+        - name: pkg
+        params:
+          REPO: ((repo))
+          DIST: ((dist))
+          BINTRAY: ((bintray_username)):((bintray_apikey))
+        run:
+          path: bash
+          args:
+          - -euc
+          - |
+            shopt -s nullglob
+            pushd pkg/
+            files=( *.deb )
+            version="$(echo ${files[0]} | perl -ne '/.*_(.*)_.*/ && print $1')"
+            for file in "${files[@]}"; do
+              echo -n "Publishing ${file}... "
+              curl -T "$file" "https://$BINTRAY@api.bintray.com/content/open-switch/opx-apt/$REPO/$version/pool/$DIST/$REPO/$file;deb_distribution=$DIST,testing;deb_component=main;deb_architecture=amd64;publish=1"
+              echo
+            done
+    - task: aptly-publish
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: opxhub/concourse
+        inputs:
+        - name: pkg
+        params:
+          AWS_ACCESS_KEY_ID: ((aptly_s3_access_key_id))
+          AWS_SECRET_ACCESS_KEY: ((aptly_s3_secret_access_key))
+          APTLY_KEY: ((aptly_gpg_key))
+        run:
+          path: bash
+          args:
+          - -euc
+          - |
+            aws s3 sync s3://aptlydb.deb.openswitch.net/aptlydb/ aptlydb/
+            cat <<EOF >aptly.conf
+            {
+              "rootDir": "$PWD/aptlydb",
+              "S3PublishEndpoints": {
+                "opx": {
+                  "region":"us-west-2",
+                  "bucket":"deb.openswitch.net",
+                  "acl":"public-read"
+                }
+              }
+            }
+            EOF
+            echo "$APTLY_KEY" | gpg --import
+            aptly -config=aptly.conf repo add opx-testing pkg/
+            aptly -config=aptly.conf publish update testing s3:opx:
+            aws s3 sync aptlydb/ s3://aptlydb.deb.openswitch.net/aptlydb/
+
+resources:
+- name: ((repo))
+  type: git
+  source:
+    uri: git://git.openswitch.net/opx/((repo))
+    branch: master
+- name: ((repo))-tag
+  type: git
+  source:
+    uri: git://git.openswitch.net/opx/((repo))
+    tag_filter: "debian/*"
+    branch: master
+- name: opx-build
+  type: git
+  source:
+    uri: git://git.openswitch.net/opx/opx-build
+    branch: master
