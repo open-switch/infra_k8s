@@ -39,9 +39,9 @@ jobs:
 
           docker images
 
-          cd $REPO/docker
-          sh -ex ./opx_setup
-          cd ../..
+          cd $REPO
+          sh -ex ./docker_build.sh
+          cd ..
           docker save opxhub/build:$OPX_DIST -o images/build-$OPX_DIST.tar
           echo $OPX_DIST >images/$OPX_DIST
   - put: opxhub-build
@@ -91,9 +91,9 @@ jobs:
 
           docker images
 
-          cd $REPO/docker
-          sh -ex ./opx_setup
-          cd ../..
+          cd $REPO
+          sh -ex ./docker_build.sh
+          cd ..
           docker save opxhub/build:$OPX_DIST -o images/build-$OPX_DIST.tar
           echo $OPX_DIST >images/$OPX_DIST
   - put: opxhub-build
