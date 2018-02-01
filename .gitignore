@@ -6,3 +6,4 @@ consul-ui-password.txt
 vault.*.token
 concourse-keys/
 concourse.credentialManager.yml
+aptly.key

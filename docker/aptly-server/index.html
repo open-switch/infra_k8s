@@ -1,0 +1,40 @@
+<html>
+<head>
+<title>deb.openswitch.net - OpenSwitch Debian repository</title>
+</head>
+<body>
+<h1>deb.openswitch.net</h1>
+
+<p>This is the repository for the <a href="http://openswitch.net/">OpenSwitch OPX Operating System</a>. You can install an official release or a development release.</p>
+
+<p>To install an official release (replace 2.0 with desired release), use this repository</p>
+
+<pre>
+deb http://deb.openswitch.net/ 2.0 main
+</pre>
+
+<p>Otherwise you can install packages from the <code>stable</code>, <code>testing</code>, or <code>unstable</code> repositories.</p>
+
+<pre>
+deb http://deb.openswitch.net/ stable main
+deb-src http://deb.openswitch.net/ stable main
+
+deb http://deb.openswitch.net/ testing main
+deb-src http://deb.openswitch.net/ testing main
+
+deb http://deb.openswitch.net/ unstable main
+deb-src http://deb.openswitch.net/ unstable main
+</pre>
+
+<p>After that you can import our key and install OPX as any other software package:</p>
+
+<pre>
+gpg --keyserver pgp.mit.edu --recv-keys AD5073F1
+gpg -a --export AD5073F1 | apt-key add -
+
+apt-get update
+apt-get install opx-dell-vm
+</pre>
+
+</body>
+</html>

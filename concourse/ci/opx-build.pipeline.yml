@@ -1,6 +1,6 @@
 ---
 jobs:
-- name: publish-unstable
+- name: docker-base
   public: true
   plan:
   - aggregate:
@@ -25,7 +25,7 @@ jobs:
       - name: images
       params:
         REPO: opx-build
-        OPX_DIST: unstable
+        OPX_DIST: pbuilder
       run:
         path: sh
         args:
@@ -40,7 +40,62 @@ jobs:
           docker images
 
           cd $REPO
-          sh -ex ./docker_build.sh
+          OPX_DIST=base sh -e ./docker_build.sh
+          OPX_DIST=pbuilder sh -e ./docker_build.sh
+          cd ..
+          docker save opxhub/build:$OPX_DIST -o images/build-$OPX_DIST.tar
+          echo $OPX_DIST >images/$OPX_DIST
+  - put: opxhub-build
+    params:
+      load_file: images/build-pbuilder.tar
+      load_repository: opxhub/build
+      load_tag: pbuilder
+      tag: images/pbuilder
+      tag_as_latest: false
+
+- name: publish-unstable
+  public: true
+  plan:
+  - aggregate:
+    - get: opx-build
+    - get: opxhub-build
+      version: every
+      trigger: true
+      passed:
+      - docker-base
+      params:
+        save: true
+  - task: build-image
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: amidos/dcind
+      inputs:
+      - name: opx-build
+      - name: opxhub-build
+      outputs:
+      - name: images
+      params:
+        REPO: opx-build
+        OPX_DIST: unstable
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          source /docker-lib.sh
+          start_docker
+
+          docker load -i opxhub-build/image
+          docker tag "$(cat opxhub-build/image-id)" "$(cat opxhub-build/repository):$(cat opxhub-build/tag)"
+
+          docker images
+
+          cd $REPO
+          sh -e ./docker_build.sh
           cd ..
           docker save opxhub/build:$OPX_DIST -o images/build-$OPX_DIST.tar
           echo $OPX_DIST >images/$OPX_DIST
@@ -57,9 +112,11 @@ jobs:
   plan:
   - aggregate:
     - get: opx-build
-      version: latest
+    - get: opxhub-build
+      version: every
       trigger: true
-    - get: base-image
+      passed:
+      - docker-base
       params:
         save: true
   - task: build-image
@@ -72,7 +129,7 @@ jobs:
           repository: amidos/dcind
       inputs:
       - name: opx-build
-      - name: base-image
+      - name: opxhub-build
       outputs:
       - name: images
       params:
@@ -86,13 +143,13 @@ jobs:
           source /docker-lib.sh
           start_docker
 
-          docker load -i base-image/image
-          docker tag "$(cat base-image/image-id)" "$(cat base-image/repository):$(cat base-image/tag)"
+          docker load -i opxhub-build/image
+          docker tag "$(cat opxhub-build/image-id)" "$(cat opxhub-build/repository):$(cat opxhub-build/tag)"
 
           docker images
 
           cd $REPO
-          sh -ex ./docker_build.sh
+          sh -e ./docker_build.sh
           cd ..
           docker save opxhub/build:$OPX_DIST -o images/build-$OPX_DIST.tar
           echo $OPX_DIST >images/$OPX_DIST
@@ -102,6 +159,222 @@ jobs:
       load_repository: opxhub/build
       load_tag: testing
       tag: images/testing
+      tag_as_latest: false
+
+- name: publish-stable
+  public: true
+  plan:
+  - aggregate:
+    - get: opx-build
+    - get: opxhub-build
+      version: every
+      trigger: true
+      passed:
+      - docker-base
+      params:
+        save: true
+  - task: build-image
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: amidos/dcind
+      inputs:
+      - name: opx-build
+      - name: opxhub-build
+      outputs:
+      - name: images
+      params:
+        REPO: opx-build
+        OPX_DIST: stable
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          source /docker-lib.sh
+          start_docker
+
+          docker load -i opxhub-build/image
+          docker tag "$(cat opxhub-build/image-id)" "$(cat opxhub-build/repository):$(cat opxhub-build/tag)"
+
+          docker images
+
+          cd $REPO
+          sh -e ./docker_build.sh
+          cd ..
+          docker save opxhub/build:$OPX_DIST -o images/build-$OPX_DIST.tar
+          echo $OPX_DIST >images/$OPX_DIST
+  - put: opxhub-build
+    params:
+      load_file: images/build-stable.tar
+      load_repository: opxhub/build
+      load_tag: stable
+      tag: images/stable
+      tag_as_latest: false
+
+- name: publish-2.0
+  public: true
+  plan:
+  - aggregate:
+    - get: opx-build
+    - get: opxhub-build
+      version: every
+      trigger: true
+      passed:
+      - docker-base
+      params:
+        save: true
+  - task: build-image
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: amidos/dcind
+      inputs:
+      - name: opx-build
+      - name: opxhub-build
+      outputs:
+      - name: images
+      params:
+        REPO: opx-build
+        OPX_DIST: "2.0"
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          source /docker-lib.sh
+          start_docker
+
+          docker load -i opxhub-build/image
+          docker tag "$(cat opxhub-build/image-id)" "$(cat opxhub-build/repository):$(cat opxhub-build/tag)"
+
+          docker images
+
+          cd $REPO
+          sh -e ./docker_build.sh
+          cd ..
+          docker save opxhub/build:$OPX_DIST -o images/build-$OPX_DIST.tar
+          echo $OPX_DIST >images/$OPX_DIST
+  - put: opxhub-build
+    params:
+      load_file: images/build-2.0.tar
+      load_repository: opxhub/build
+      load_tag: "2.0"
+      tag: images/2.0
+      tag_as_latest: false
+
+- name: publish-2.1
+  public: true
+  plan:
+  - aggregate:
+    - get: opx-build
+    - get: opxhub-build
+      version: every
+      trigger: true
+      passed:
+      - docker-base
+      params:
+        save: true
+  - task: build-image
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: amidos/dcind
+      inputs:
+      - name: opx-build
+      - name: opxhub-build
+      outputs:
+      - name: images
+      params:
+        REPO: opx-build
+        OPX_DIST: "2.1"
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          source /docker-lib.sh
+          start_docker
+
+          docker load -i opxhub-build/image
+          docker tag "$(cat opxhub-build/image-id)" "$(cat opxhub-build/repository):$(cat opxhub-build/tag)"
+
+          docker images
+
+          cd $REPO
+          sh -e ./docker_build.sh
+          cd ..
+          docker save opxhub/build:$OPX_DIST -o images/build-$OPX_DIST.tar
+          echo $OPX_DIST >images/$OPX_DIST
+  - put: opxhub-build
+    params:
+      load_file: images/build-2.1.tar
+      load_repository: opxhub/build
+      load_tag: "2.1"
+      tag: images/2.1
+      tag_as_latest: false
+
+- name: publish-2.2
+  public: true
+  plan:
+  - aggregate:
+    - get: opx-build
+    - get: opxhub-build
+      version: every
+      trigger: true
+      passed:
+      - docker-base
+      params:
+        save: true
+  - task: build-image
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: amidos/dcind
+      inputs:
+      - name: opx-build
+      - name: opxhub-build
+      outputs:
+      - name: images
+      params:
+        REPO: opx-build
+        OPX_DIST: "2.2"
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          source /docker-lib.sh
+          start_docker
+
+          docker load -i opxhub-build/image
+          docker tag "$(cat opxhub-build/image-id)" "$(cat opxhub-build/repository):$(cat opxhub-build/tag)"
+
+          docker images
+
+          cd $REPO
+          sh -e ./docker_build.sh
+          cd ..
+          docker save opxhub/build:$OPX_DIST -o images/build-$OPX_DIST.tar
+          echo $OPX_DIST >images/$OPX_DIST
+  - put: opxhub-build
+    params:
+      load_file: images/build-2.2.tar
+      load_repository: opxhub/build
+      load_tag: "2.2"
+      tag: images/2.2
       tag_as_latest: false
 
 resources:
@@ -114,6 +387,7 @@ resources:
   type: docker-image
   source:
     repository: opxhub/build
+    tag: pbuilder
     username: ((docker_hub_username))
     password: ((docker_hub_password))
 - name: base-image
