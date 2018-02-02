@@ -20,3 +20,11 @@ helm install --name aptly \
 helm del --purge aptly
 ```
 
+## Helpful Commands
+
+Fetch all Bintray packages.
+```bash
+wget -e robots=off -A deb -m -p -E -k -K -np https://dell-networking.bintray.com/opx-apt/pool
+wget -e robots=off -A deb,dsc,gz,build -m -p -E -k -K -np https://dl.bintray.com/open-switch/opx-apt/pool
+```
+
