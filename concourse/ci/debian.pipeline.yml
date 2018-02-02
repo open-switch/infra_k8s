@@ -152,7 +152,7 @@ jobs:
           version="$(echo ${files[0]} | perl -ne '/.*_(.*)_.*/ && print $1')"
           for file in "${files[@]}"; do
             echo -n "Publishing ${file}... "
-            curl -T "$file" "https://$BINTRAY@api.bintray.com/content/open-switch/opx-apt/$REPO/$version/pool/$DIST/$REPO/$file;deb_distribution=$DIST,testing;deb_component=main;deb_architecture=amd64;publish=1"
+            curl -T "$file" "https://$BINTRAY@api.bintray.com/content/open-switch/opx-apt/$REPO/$version/pool/$DIST/$REPO/$file;deb_distribution=${DIST};deb_component=main;deb_architecture=amd64;publish=1"
             echo
           done
 

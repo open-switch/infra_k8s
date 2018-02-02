@@ -25,6 +25,6 @@ debian_repos = \
   opx-alarm
 
 $(debian_repos):
-	fly -t concourse set-pipeline -n -c ci/debian.pipeline.yml -p $@ -v repo=$@ -v dist=2.2
+	fly -t concourse set-pipeline -n -c ci/debian.pipeline.yml -p $@ -v repo=$@ -v dist=testing
 	fly -t concourse unpause-pipeline -p $@
 	fly -t concourse expose-pipeline -p $@
