@@ -4,8 +4,9 @@ New to the team? Start with [onboarding](onboarding.md).
 
 ## Contents
 
-- [Helm charts](charts/)
-- [CI/CD](ci/)
 - [Cluster](cluster.md)
+- [Continuous Delivery](cd.md)
+- [Helm charts](charts/)
 - [Onboarding](onboarding.md)
 - [Tools](tools.md)
+
