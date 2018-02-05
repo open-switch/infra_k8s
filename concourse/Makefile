@@ -28,3 +28,5 @@ $(debian_repos):
 	fly -t concourse set-pipeline -n -c ci/debian.pipeline.yml -p $@ -v repo=$@ -v dist=testing
 	fly -t concourse unpause-pipeline -p $@
 	fly -t concourse expose-pipeline -p $@
+
+all: $(debian_repos)
