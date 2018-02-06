@@ -1,8 +1,6 @@
 FROM opxhub/build
 LABEL maintainer="ops-dev@lists.openswitch.net"
 
-ENV DEBIAN_FRONTEND noninteractive
-
 RUN apt-get update && apt-get install -y \
     curl \
     jq \

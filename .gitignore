@@ -7,3 +7,4 @@ vault.*.token
 concourse-keys/
 concourse.credentialManager.yml
 aptly.key
+test.pipeline.yml

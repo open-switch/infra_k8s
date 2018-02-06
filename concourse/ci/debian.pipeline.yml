@@ -55,32 +55,72 @@ jobs:
 
           # copy packages to output
           cp -t pkg/ /mnt/*.deb /mnt/*.build /mnt/*.dsc /mnt/*.tar.gz
-  - task: publish-debs
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: opxhub/concourse
-      inputs:
-      - name: pkg
-      params:
-        REPO: ((repo))
-        BINTRAY: ((bintray_username)):((bintray_apikey))
-      run:
-        path: bash
-        args:
-        - -euc
-        - |
-          shopt -s nullglob
-          pushd pkg/
-          files=( *.deb )
-          version="$(echo ${files[0]} | perl -ne '/.*_(.*)_.*/ && print $1')"
-          for file in "${files[@]}"; do
-            echo -n "Publishing ${file}... "
-            curl -T "$file" "https://$BINTRAY@api.bintray.com/content/open-switch/opx-apt/$REPO/$version/pool/unstable/$REPO/$file;deb_distribution=unstable;deb_component=main;deb_architecture=amd64;publish=1"
-            echo
-          done
+  - aggregate:
+    - task: publish-debs
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: opxhub/concourse
+        inputs:
+        - name: pkg
+        params:
+          BINTRAY: ((bintray_username)):((bintray_apikey))
+          DIST: unstable
+          REPO: ((repo))
+        run:
+          path: bash
+          args:
+          - -euc
+          - |
+            shopt -s nullglob
+            pushd pkg/
+            files=( *.deb )
+            version="$(echo ${files[0]} | perl -ne '/.*_(.*)_.*/ && print $1')"
+            for file in "${files[@]}"; do
+              echo -n "Publishing ${file}... "
+              curl -T "$file" "https://$BINTRAY@api.bintray.com/content/open-switch/opx-apt/$REPO/$version/pool/$DIST/$REPO/$file;deb_distribution=${DIST};deb_component=main;deb_architecture=amd64;publish=1"
+              echo
+            done
+    - task: aptly-publish
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: opxhub/concourse
+        params:
+          API: http://aptly-aptly.deb:8080/api
+          DIST: unstable
+          REPO: ((repo))
+        inputs:
+        - name: pkg
+        run:
+          path: bash
+          args:
+          - -euc
+          - |
+            shopt -s nullglob
+            upload_dir="${REPO}_$(date +%s)"
+            cleanup() {
+              echo -n "Cleaning up... "
+              curl -sf -XDELETE $API/files/$upload_dir | jq '.'
+              echo
+            }
+            trap cleanup EXIT
+            for f in pkg/*; do
+              echo -n "Uploading $f... "
+              curl -sf -XPOST -F file=@$f $API/files/$upload_dir
+              echo
+            done
+            echo "Listing uploaded files for confirmation."
+            curl -sf $API/files/$upload_dir | jq '.'
+            echo "Adding new files to $DIST."
+            # TODO: add error handling with jq and .FailedFiles
+            curl -sf -XPOST $API/repos/opx-$DIST/file/$upload_dir | jq '.'
+            echo "Publishing updated repository."
+            curl -sf -XPUT $API/publish/filesystem:public:./$DIST | jq '.'
   on_failure:
     put: send-failure-email
     params:
@@ -133,33 +173,72 @@ jobs:
 
           # copy packages to output
           cp -t pkg/ /mnt/*.deb /mnt/*.build /mnt/*.dsc /mnt/*.tar.gz
-  - task: publish-debs
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: opxhub/concourse
-      inputs:
-      - name: pkg
-      params:
-        REPO: ((repo))
-        DIST: ((dist))
-        BINTRAY: ((bintray_username)):((bintray_apikey))
-      run:
-        path: bash
-        args:
-        - -euc
-        - |
-          shopt -s nullglob
-          pushd pkg/
-          files=( *.deb )
-          version="$(echo ${files[0]} | perl -ne '/.*_(.*)_.*/ && print $1')"
-          for file in "${files[@]}"; do
-            echo -n "Publishing ${file}... "
-            curl -T "$file" "https://$BINTRAY@api.bintray.com/content/open-switch/opx-apt/$REPO/$version/pool/$DIST/$REPO/$file;deb_distribution=${DIST};deb_component=main;deb_architecture=amd64;publish=1"
-            echo
-          done
+  - aggregate:
+    - task: publish-debs
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: opxhub/concourse
+        inputs:
+        - name: pkg
+        params:
+          BINTRAY: ((bintray_username)):((bintray_apikey))
+          DIST: testing
+          REPO: ((repo))
+        run:
+          path: bash
+          args:
+          - -euc
+          - |
+            shopt -s nullglob
+            pushd pkg/
+            files=( *.deb )
+            version="$(echo ${files[0]} | perl -ne '/.*_(.*)_.*/ && print $1')"
+            for file in "${files[@]}"; do
+              echo -n "Publishing ${file}... "
+              curl -T "$file" "https://$BINTRAY@api.bintray.com/content/open-switch/opx-apt/$REPO/$version/pool/$DIST/$REPO/$file;deb_distribution=${DIST};deb_component=main;deb_architecture=amd64;publish=1"
+              echo
+            done
+    - task: aptly-publish
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: opxhub/concourse
+        params:
+          API: http://aptly-aptly.deb:8080/api
+          DIST: testing
+          REPO: ((repo))
+        inputs:
+        - name: pkg
+        run:
+          path: bash
+          args:
+          - -euc
+          - |
+            shopt -s nullglob
+            upload_dir="${REPO}_$(date +%s)"
+            cleanup() {
+              echo -n "Cleaning up... "
+              curl -sf -XDELETE $API/files/$upload_dir | jq '.'
+              echo
+            }
+            trap cleanup EXIT
+            for f in pkg/*; do
+              echo -n "Uploading $f... "
+              curl -sf -XPOST -F file=@$f $API/files/$upload_dir
+              echo
+            done
+            echo "Listing uploaded files for confirmation."
+            curl -sf $API/files/$upload_dir | jq '.'
+            echo "Adding new files to $DIST."
+            # TODO: add error handling with jq and .FailedFiles
+            curl -sf -XPOST $API/repos/opx-$DIST/file/$upload_dir | jq '.'
+            echo "Publishing updated repository."
+            curl -sf -XPUT $API/publish/filesystem:public:./$DIST | jq '.'
   on_failure:
     put: send-failure-email
     params:
@@ -189,8 +268,8 @@ resources:
     smtp:
       host: email-smtp.us-west-2.amazonaws.com
       port: "587"
-      username: ((smtp-username))
-      password: ((smtp-password))
+      username: ((smtp_username))
+      password: ((smtp_password))
     from: opx@openswitch.net
     to:
     -  tyler.heucke@dell.com
