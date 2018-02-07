@@ -16,8 +16,15 @@ single binaries which can be downloaded directly.
 The following tools do not need to be installed by your package manager.
 
 - Aptly: `kubectl exec` into the `aptly-server` pod for direct control
-- Fly: download directly from our [Concourse
-  instance](https://concourse.k8s.openswitch.net/)
+- Fly: download directly from our [Concourse instance](https://concourse.k8s.openswitch.net/)
+
+You can log into Concourse using `fly`.
+
+```bash
+fly --target concourse login \
+  --team-name main \
+  --concourse-url https://concourse.k8s.openswitch.net
+```
 
 ### macOS
 
@@ -29,7 +36,7 @@ brew install \
   kubectl \
   kubernetes-helm \
   terraform \
-  vault \
+  vault
 ```
 
 ### Arch Linux
