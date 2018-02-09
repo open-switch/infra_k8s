@@ -5,35 +5,44 @@
 <body>
 <h1>deb.openswitch.net</h1>
 
-<p>This is the repository for the <a href="http://openswitch.net/">OpenSwitch OPX Operating System</a>. You can install an official release or a development release.</p>
+<p>This is the repository for the <a href="http://openswitch.net/">OpenSwitch OPX Operating System</a>.</p>
 
-<p>To install an official release (replace 2.0 with desired release), use this repository</p>
+<p>To install packages from an official release, use this repository.</p>
 
 <pre>
-deb http://deb.openswitch.net/ 2.0 main
+deb http://deb.openswitch.net/ 2.2 main
 </pre>
 
-<p>Otherwise you can install packages from the <code>stable</code>, <code>testing</code>, or <code>unstable</code> repositories.</p>
+<p>To install packages from a development stream, use this repository.</p>
 
 <pre>
-deb http://deb.openswitch.net/ stable main
-deb-src http://deb.openswitch.net/ stable main
-
-deb http://deb.openswitch.net/ testing main
-deb-src http://deb.openswitch.net/ testing main
-
 deb http://deb.openswitch.net/ unstable main
 deb-src http://deb.openswitch.net/ unstable main
 </pre>
 
-<p>After that you can import our key and install OPX as any other software package:</p>
+<p>You can substitute unstable with any stream below.</p>
+
+<table>
+  <tr>
+    <td>unstable</td>
+    <td>Packages built from HEAD</td>
+  </tr>
+  <tr>
+    <td>testing</td>
+    <td>Packages manually promoted by maintainers</td>
+  </tr>
+  <tr>
+    <td>stable</td>
+    <td>Packages promoted from testing to be included in releases</td>
+  </tr>
+</table>
+
+<p>After importing our key, you can install OPX packages.</p>
 
 <pre>
-gpg --keyserver pgp.mit.edu --recv-keys AD5073F1
-gpg -a --export AD5073F1 | apt-key add -
-
-apt-get update
-apt-get install opx-dell-vm
+sudo apt-key adv --keyserver pgp.mit.edu --recv AD5073F1
+sudo apt-get update
+sudo apt-get install opx-dell-vm
 </pre>
 
 </body>

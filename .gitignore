@@ -8,3 +8,5 @@ concourse-keys/
 concourse.credentialManager.yml
 aptly.key
 test.pipeline.yml
+
+.DS_Store
