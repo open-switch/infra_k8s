@@ -214,6 +214,8 @@ jobs:
           REPO: ((repo))
         inputs:
         - name: pkg
+        - name: ((repo))-tag
+          path: ((repo))
         run:
           path: bash
           args:
@@ -239,6 +241,14 @@ jobs:
             curl -sf -XPOST $API/repos/opx-$DIST/file/$upload_dir | jq '.'
             echo "Publishing updated repository."
             curl -sf -XPUT $API/publish/filesystem:public:./$DIST | jq '.'
+            echo "Publishing to stable as well."
+            VER="$(cd $REPO; dpkg-parsechangelog -SVersion)"
+            pkgs="$(curl -s ''$API'/repos/opx-testing/packages?q='$REPO'%20(%3D%20'$VER')|($Source%20('$REPO'),Version%20(%3D%20'$VER'))')"
+            echo $pkgs | jq '.'
+            curl -sf -XPOST -H'Content-Type: application/json' --data \
+              '{"PackageRefs": '"$pkgs"'}' \
+              "$API/repos/opx-stable/packages" | jq '.'
+            curl -sf -XPUT $API/publish/filesystem:public:./stable | jq '.'
   on_failure:
     put: send-failure-email
     params:
