@@ -7,6 +7,7 @@ vault.*.token
 concourse-keys/
 concourse.credentialManager.yml
 aptly.key
+key
 test.pipeline.yml
 
 .DS_Store

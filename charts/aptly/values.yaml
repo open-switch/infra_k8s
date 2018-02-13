@@ -4,7 +4,7 @@
 replicaCount: 1
 image:
   repository: opxhub/aptly-server
-  tag: latest
+  tag: "2.2.0"
   pullPolicy: Always
 service:
   name: nginx
