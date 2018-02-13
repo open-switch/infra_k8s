@@ -377,6 +377,60 @@ jobs:
       tag: images/2.2
       tag_as_latest: false
 
+- name: publish-2.2.1
+  public: true
+  plan:
+  - aggregate:
+    - get: opx-build
+    - get: opxhub-build
+      version: every
+      trigger: true
+      passed:
+      - docker-base
+      params:
+        save: true
+  - task: build-image
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: amidos/dcind
+      inputs:
+      - name: opx-build
+      - name: opxhub-build
+      outputs:
+      - name: images
+      params:
+        REPO: opx-build
+        OPX_DIST: "2.2.1"
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          source /docker-lib.sh
+          start_docker
+
+          docker load -i opxhub-build/image
+          docker tag "$(cat opxhub-build/image-id)" "$(cat opxhub-build/repository):$(cat opxhub-build/tag)"
+
+          docker images
+
+          cd $REPO
+          sh -e ./docker_build.sh
+          cd ..
+          docker save opxhub/build:$OPX_DIST -o images/build-$OPX_DIST.tar
+          echo $OPX_DIST >images/$OPX_DIST
+  - put: opxhub-build
+    params:
+      load_file: images/build-2.2.1.tar
+      load_repository: opxhub/build
+      load_tag: "2.2.1"
+      tag: images/2.2.1
+      tag_as_latest: false
+
 resources:
 - name: opx-build
   type: git

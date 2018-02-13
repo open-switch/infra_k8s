@@ -5,7 +5,7 @@ Use Helm to deploy `aptly` in a kubernetes cluster. To run this chart you need t
 First, export your GPG key.
 
 ```bash
-gpg --armor --export-secret-keys > aptly.key
+gpg --armor --export-secret-keys > key
 ```
 
 This key will be used to sign the repository. Let's deploy the chart.
@@ -15,7 +15,7 @@ helm install \
   --name aptly \
   --namespace deb \
   -f values.yaml \
-  --set aptly.key="$(cat aptly.key)" \
+  --set aptly.key="$(cat key)" \
   .
 ```
 
