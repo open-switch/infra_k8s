@@ -22,9 +22,9 @@ You can copy your packages:
 
 kubectl --namespace deb cp ./debs "$(kubectl get pods --namespace deb -l "app=aptly" -o jsonpath="{.items[0].metadata.name}")":/pkg
 
-And then exec into the pod and use aptly:
+And then exec into the pod and use aptly (--login shows useful info):
 
-kubectl --namespace deb exec -it "$(kubectl get pods --namespace deb -l "app=aptly" -o jsonpath="{.items[0].metadata.name}")" bash
+kubectl --namespace deb exec -it "$(kubectl get pods --namespace deb -l "app=aptly" -o jsonpath="{.items[0].metadata.name}")" bash --login
 
 Play with the api:
 

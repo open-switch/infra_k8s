@@ -1,0 +1,37 @@
+#!/bin/bash
+
+cat <<EOF
+Welcome to Aptly!
+
+Preinstalled aliases
+---------------
+* list - aptly list all repos, snapshots, mirrors, and publishes
+* graph - aptly graph with basic html wrapper, check http://127.0.0.1/apt.html
+
+Environment variables
+---------------------
+* PUB - default publish location, filesystem:public:
+
+EOF
+
+export PUB="filesystem:public:"
+
+list() {
+aptly repo list
+echo '----------------------------------------------------------------------'
+aptly snapshot list
+echo '----------------------------------------------------------------------'
+aptly mirror list
+echo '----------------------------------------------------------------------'
+aptly publish list
+}
+
+graph() {
+cat <<EOF >/usr/share/nginx/html/apt.html
+<html><head><title>deb.openswitch.net Overview</title></head><body>
+<img src="apt.svg" alt="deb.openswitch.net Overview" /></body></html>
+EOF
+curl -s http://localhost:8080/api/graph.svg?layout=vertical \
+  >/usr/share/nginx/html/apt.svg
+}
+
