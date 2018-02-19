@@ -6,7 +6,7 @@ Welcome to Aptly!
 Preinstalled aliases
 ---------------
 * list - aptly list all repos, snapshots, mirrors, and publishes
-* graph - aptly graph with basic html wrapper, check http://127.0.0.1/apt.html
+* graph_aptly - aptly graph with basic html wrapper, check http://127.0.0.1/apt.svg
 
 Environment variables
 ---------------------
@@ -26,12 +26,16 @@ echo '----------------------------------------------------------------------'
 aptly publish list
 }
 
-graph() {
-cat <<EOF >/usr/share/nginx/html/apt.html
-<html><head><title>deb.openswitch.net Overview</title></head><body>
-<img src="apt.svg" alt="deb.openswitch.net Overview" /></body></html>
-EOF
+graph_aptly() {
 curl -s http://localhost:8080/api/graph.svg?layout=vertical \
   >/usr/share/nginx/html/apt.svg
+}
+
+build_graph() {
+  debtree -b --no-versions opx-dell-vm | gvpr -i 'N[name == "*opx*"]' | dot -Tsvg -o /usr/share/nginx/html/build-unstable.svg
+}
+
+dep_graph() {
+  debtree --no-versions opx-dell-vm | gvpr -i 'N[name == "*opx*"]' | dot -Tsvg -o /usr/share/nginx/html/dep-unstable.svg
 }
 
