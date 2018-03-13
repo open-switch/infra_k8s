@@ -59,7 +59,7 @@ helm install --name kube-spot-termination-notice-handler \
 # ingress controller and letsencrypt cert manager
 helm install stable/nginx-ingress \
   --name nginx-ingress \
-  --set controller.stats.enabled=true
+  --set tcp.29418="gerrit/gerrit:29418"
 helm install stable/kube-lego \
   --name kube-lego \
   -f charts/kube-lego.yml
