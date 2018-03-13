@@ -259,13 +259,12 @@ resources:
 - name: ((repo))
   type: git
   source:
-    uri: git://github.com/open-switch/((repo))
-    branch: master
+    uri: git://github.com/open-switch/SAI
+    branch: "dell.1.2+"
 - name: ((repo))-tag
   type: git
   source:
-    uri: git://github.com/open-switch/((repo))
-    branch: master
+    uri: git://github.com/open-switch/SAI
     tag_filter: "debian/*"
 - name: opx-build
   type: git

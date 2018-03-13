@@ -26,7 +26,13 @@ debian_repos = \
 
 $(debian_repos):
 	fly -t concourse set-pipeline -c ci/debian.pipeline.yml -p $@ -v repo=$@ -n
-	fly -t concourse unpause-pipeline -p $@
-	fly -t concourse expose-pipeline -p $@
+	@# fly -t concourse unpause-pipeline -p $@
+	@# fly -t concourse expose-pipeline -p $@
+
+opx-sai-api:
+	fly -t concourse set-pipeline -c ci/$@.pipeline.yml -p $@ -v repo=$@ -n
+	@# fly -t concourse unpause-pipeline -p $@
+	@# fly -t concourse expose-pipeline -p $@
 
 all: $(debian_repos)
+
