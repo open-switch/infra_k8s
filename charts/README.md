@@ -4,7 +4,7 @@ We use a combination of public charts and charts we've developed ourselves. Unti
 
 ## Our Charts
 
-- [Aptly](stable/aptly/README.md)
+- [Aptly](stable/aptly/)
 
 ## Deployments
 
