@@ -1,0 +1,38 @@
+imageTag: "3.9.2"
+
+concourse:
+  externalURL: "https://concourse.openswitch.net"
+
+web:
+  ingress:
+    hosts:
+      - concourse.openswitch.net
+    tls:
+      - secretName: concourse-web-tls
+        hosts:
+          - concourse.openswitch.net
+
+worker:
+  replicas: 4
+  resources:
+    limits:
+      cpu: "2000m"
+      memory: "8Gi"
+
+persistence:
+  worker:
+    size: 200Gi
+
+credentialManager:
+  kubernetes:
+    enabled: true
+    namespacePrefix: concourse-prod-
+    teams:
+      - main
+      - gerrit
+      - infra
+      - tools
+
+rbac:
+  create: true
+

@@ -1,0 +1,63 @@
+# Helm Charts
+
+We use a combination of public charts and charts we've developed ourselves. Until the need arises, our charts are developed in this repository. If any charts use custom Dockerfiles, look in chart/docker for more information.
+
+## Our Charts
+
+- [Aptly](stable/aptly/README.md)
+
+## Deployments
+
+Here's what's currently deployed, unless otherwise noted. We install one helm instance per namespace, except we combine default/kube-system. Make sure to set the `tiller-namespace` and the `namespace`. Value files found in `values/` contain a base configuration, used in our staging namespace. Apply the production file in `values/prod/` after the base file for a staging deployment.
+
+### Aptly
+
+You'll need a private GPG key to sign the repository.
+
+```bash
+export TILLER_NAMESPACE=stg
+helm install --namespace $TILLER_NAMESPACE \
+  --name aptly \
+  stable/aptly \
+  -f values/aptly.yaml \
+  -f values/prod/aptly.yaml \
+  --set aptly.key="$(cat aptly.key)"
+```
+
+### Concourse
+
+```bash
+export TILLER_NAMESPACE=stg
+helm install --namespace $TILLER_NAMESPACE \
+  --name concourse \
+  stable/concourse \
+  -f values/concourse.yaml \
+  --set secrets.githubAuthClientId=XXXXXXXXXXXXXXXXXXXX \
+  --set secrets.githubAuthClientSecret=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+```
+
+Now you can log in.
+
+```bash
+fly -t stg login -n main -c https://concourse.opx.openswitch.net
+```
+
+If `rbac.create` is false, explicit permission must be granted for secrets access.
+
+```bash
+kubectl create rolebinding prod-concourse-secrets \
+  --clusterrole=view \
+  --serviceaccount=prod:default \
+  --namespace=concourse-prod-main
+```
+
+#### Important
+
+Since Concourse uses a StatefulSet for the workers, PVCs need to be deleted manually.
+
+```bash
+export TILLER_NAMESPACE=stg
+helm del --purge stg-concourse
+kubectl -n $TILLER_NAMESPACE delete pvc -l app=concourse-worker
+```
+

@@ -1,4 +1,0 @@
-[gerrit]
-host=review.openswitch.net
-port=29418
-project=infra/k8s.git

@@ -3,9 +3,9 @@
 *.tfstate.backup
 .envrc
 consul-ui-password.txt
-vault.*.token
+*.token
 concourse-keys/
-concourse.credentialManager.yml
+*concourse.credentialManager.yml
 aptly.key
 key
 test.pipeline.yml

@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "aptly.name" . }}
+  labels:
+    app: {{ template "aptly.name" . }}
+    chart: {{ template "aptly.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: api
+  selector:
+    app: {{ template "aptly.name" . }}
+    release: {{ .Release.Name }}

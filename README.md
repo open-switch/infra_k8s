@@ -1,8 +1,7 @@
-# OpenSwitch Kubernetes Cluster
+# OpenSwitch Infrastructure Home
 
-This repository contains our cluster configuration and configurations/charts
-for all applications running on it.
+This repository contains our cluster configuration and an overview of what's deployed.
 
-New to the team? Start with [onboarding](docs/onboarding.md). Otherwise, head
-to the [documentation home](docs/) to get started.
+- [Cluster configuration](kops/README.md)
+- [Helm charts](charts/README.md)
 
