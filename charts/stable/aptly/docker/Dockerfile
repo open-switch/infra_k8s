@@ -3,7 +3,7 @@ LABEL maintainer="ops-dev@lists.openswitch.net"
 
 RUN apt-get update && apt-get install -y gnupg \
  && echo "deb http://repo.aptly.info/ squeeze main" >> /etc/apt/sources.list \
- && apt-key adv --keyserver keys.gnupg.net --recv-keys 9E3E53F19C7DE460
+ && apt-key adv --keyserver pool.sks-keyservers.net --recv-keys ED75B5A4483DA07C
 
 RUN apt-get update && apt-get install -y \
     aptly \
@@ -11,12 +11,14 @@ RUN apt-get update && apt-get install -y \
     debtree \
     graphviz \
     gnupg \
+    sudo \
     vim \
     wget \
  && rm -rf /var/lib/apt/lists/*
 
 COPY aptly.conf /etc/aptly.conf
 COPY bash_profile /root/.bash_profile
+COPY deps.sh /usr/local/bin/deps.sh
 COPY index.html /usr/share/nginx/index.html
 COPY init.sh /init
 
