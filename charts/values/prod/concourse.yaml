@@ -1,4 +1,4 @@
-imageTag: "3.9.2"
+imageTag: "3.11.0"
 
 concourse:
   externalURL: "https://concourse.openswitch.net"
