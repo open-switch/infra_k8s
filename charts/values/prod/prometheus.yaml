@@ -1,0 +1,22 @@
+alertmanager:
+  ingress:
+    fqdn: "alerts.openswitch.net"
+    tls:
+      - secretName: alertmanager-general-tls
+        hosts:
+          - alerts.openswitch.net
+prometheus:
+  ingress:
+    fqdn: "prometheus.openswitch.net"
+    tls:
+      - secretName: prometheus-k8s-tls
+        hosts:
+          - prometheus.openswitch.net
+
+grafana:
+  ingress:
+    fqdn: "monitoring.openswitch.net"
+    tls:
+      - secretName: grafana-tls
+        hosts:
+          - monitoring.openswitch.net

@@ -160,4 +160,3 @@ kubectl -n default get services -o wide -w nginx-ingress-controller
 ```
 
 Set DNS records to point to this load balancer.
-

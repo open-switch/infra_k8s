@@ -274,7 +274,7 @@ web:
     ## Port is per https://github.com/prometheus/prometheus/wiki/Default-port-allocations
     ##
     prometheus:
-      enabled: false
+      enabled: true
       port: 9391
 
 ## Configuration values for Concourse Worker components.

@@ -61,3 +61,40 @@ helm del --purge stg-concourse
 kubectl -n $TILLER_NAMESPACE delete pvc -l app=concourse-worker
 ```
 
+# Prometheus Monitoring
+
+```bash
+export TILLER_NAMESPACE=monitoring
+
+kubectl create namespace $TILLER_NAMESPACE
+cat <<EOF | kubectl create -f-
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tiller
+  namespace: ${TILLER_NAMESPACE}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: tiller-${TILLER_NAMESPACE}
+subjects:
+- kind: ServiceAccount
+  name: tiller
+  namespace: ${TILLER_NAMESPACE}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+EOF
+
+helm init --service-account tiller
+
+helm repo add coreos https://s3-eu-west-1.amazonaws.com/coreos-charts/stable/
+helm install coreos/prometheus-operator --name prometheus-operator --namespace monitoring
+helm install coreos/kube-prometheus --name kube-prometheus --namespace monitoring \
+  -f values/prometheus.yaml \
+  -f values/prod/prometheus.yaml \
+  --set grafana.adminPassword="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+```
