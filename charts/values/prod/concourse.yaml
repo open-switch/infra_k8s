@@ -1,4 +1,4 @@
-imageTag: "3.11.0"
+imageTag: "3.12.0"
 
 concourse:
   externalURL: "https://concourse.openswitch.net"
@@ -13,11 +13,7 @@ web:
           - concourse.openswitch.net
 
 worker:
-  replicas: 8
-  resources:
-    limits:
-      cpu: "2000m"
-      memory: "6Gi"
+  replicas: 4
 
 persistence:
   worker:
