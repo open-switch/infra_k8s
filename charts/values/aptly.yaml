@@ -32,8 +32,8 @@ api:
     enabled: true
     annotations:
       kubernetes.io/ingress.class: nginx
-      # kubernetes.io/tls-acme: "true"
-      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      kubernetes.io/tls-acme: "true"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
       # type of authentication
       nginx.ingress.kubernetes.io/auth-type: basic
       # name of the secret that contains the user/password definitions
@@ -43,10 +43,10 @@ api:
     path: /
     hosts:
       - aptly-stg.opx.openswitch.net
-    tls: []
-    #  - secretName: chart-example-tls
-    #    hosts:
-    #      - chart-example.local
+    tls:
+    - secretName: aptly-stg-opx-openswitch-net
+      hosts:
+        - aptly-stg.opx.openswitch.net
 
 persistence:
   enabled: true

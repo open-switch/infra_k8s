@@ -8,5 +8,9 @@ ingress:
 api:
   ingress:
     hosts:
-      - aptly.opx.openswitch.net
+      - aptly.openswitch.net
+    tls:
+    - secretName: aptly-openswitch-net
+      hosts:
+        - aptly.openswitch.net
 
