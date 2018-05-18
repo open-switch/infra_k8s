@@ -25,6 +25,10 @@ To install the chart with the release name `my-release`:
 $ helm install --name my-release stable/aptly
 ```
 
+## Exposing the API
+
+To expose the API, set a secret with basic auth information according to [this guide](https://github.com/kubernetes/contrib/tree/master/ingress/controllers/nginx/examples/auth). The secret's name must be `aptly-api-auth`.
+
 ## Uninstalling the Chart
 
 To uninstall/delete the `my-release` deployment:
