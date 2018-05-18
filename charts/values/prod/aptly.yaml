@@ -5,3 +5,8 @@ ingress:
   hosts:
     - deb.openswitch.net
 
+api:
+  ingress:
+    hosts:
+      - aptly.opx.openswitch.net
+
